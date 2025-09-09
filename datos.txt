@@ -1,0 +1,4 @@
+error: mensaje de error
+warning: mensaje de advertencia
+info: mensaje de información
+error: otro mensaje de error

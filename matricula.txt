@@ -1,0 +1,12 @@
+FirstColumn   SecondColumn
+Nombre: Juan Pérez
+Teléfono: 123-456-7890
+Correo electrónico: juan.perez@example.com
+Fecha de nacimiento: 12/02/1990
+Número de cuenta: 1234567890
+
+Nombre: Jesus Arriola
+Telefono: 525589000102
+Correo electronico: jesus.arriola@yahoo.com.mx
+Fecha de nacimiento: 18/06/1975
+Numero de cuenta: 6768719191919119199119

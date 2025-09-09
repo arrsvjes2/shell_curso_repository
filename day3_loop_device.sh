@@ -20,27 +20,13 @@ crear_loop(){
 dd if=/dev/zero of=/tmp/dispositivo_loop.img bs=1M count=$SIZE
 losetup -f /tmp/dispositivo_loop.img
 loop_device=$(losetup -j /tmp/dispositivo_loop.img | cut -d ':' -f 1)
-echo $loop_device > $TEMP_FILE
-echo "Loop Device: $(cat $TEMP_FILE)"
-}
-
-format_loop(){
-LD=$(cat $TEMP_FILE)
-mkfs.xfs $LD
-mkdir -pv $MOUNTPATH
-echo "$LD $MOUNTPATH xfs defaults 0 0" >> /etc/fstab
-mount $MOUNTPATH
-echo "Dispositivo loop creado y montado en $MOUNTPATH"
+echo "Loop Device: $loop_device"
 }
 
 # MAIN
 
-TEMP_FILE=mktemp
-
 SIZE=$(echo $1)
 MOUNTPATH=$(echo $2)
-loop_device=""
 
 validar_loop
 crear_loop
-format_loop
