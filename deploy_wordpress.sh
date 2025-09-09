@@ -6,6 +6,27 @@ DB_USER="wordpress"
 DB_PASSWORD="wordpress"
 WP_VERSION="latest"
 
+# Validar el numero de CPUs disponibles
+DESIRED_CPUS=2
+NUMPROC=$(nproc)
+DESIRED_MEMORY=4096
+
+if [ $NUMPROC -lt $DESIRED_CPUS ]; then
+  echo "Requerimiento de CPUS no superado (2) "
+  exit 1
+fi
+
+# Validar la existencia de 4096MB
+MEM_AVAILABLE=$(free -m | grep Mem | awk '{ print $2}')
+
+if [ $MEM_AVAILABLE -lt $DESIRED_MEMORY ]; then
+  echo "Requerimiento de RAM no superado (4096M)"
+  exit 1
+fi
+
+exit 0 
+
+
 # Instalación de dependencias
 echo "Instalando dependencias..."
 sudo dnf install -y httpd mariadb-server php php-mysqlnd
