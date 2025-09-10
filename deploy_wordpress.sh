@@ -11,6 +11,14 @@ DESIRED_CPUS=2
 NUMPROC=$(nproc)
 DESIRED_MEMORY=4096
 
+SO_DESIRED="Red Hat Enterprise Linux 9.6 (Plow)"
+SO_INSTALLED=$(echo $(hostnamectl | grep "Operating System" | cut -d ":" -f 2))
+
+if [ "$SO_DESIRED" != "$SO_INSTALLED" ]; then
+  echo "Sistema operativo no soportado"
+  exit 1
+fi
+
 if [ $NUMPROC -lt $DESIRED_CPUS ]; then
   echo "Requerimiento de CPUS no superado (2) "
   exit 1
@@ -24,22 +32,21 @@ if [ $MEM_AVAILABLE -lt $DESIRED_MEMORY ]; then
   exit 1
 fi
 
-exit 0 
-
+# Pendiente Validar espacio de /var debera tener por lo menos 1GB
 
 # Instalación de dependencias
 echo "Instalando dependencias..."
-sudo dnf install -y httpd mariadb-server php php-mysqlnd
+sudo dnf install -y httpd mariadb-server php php-mysqlnd firewalld wget
 
 # Configuración de la base de datos
 echo "Configurando la base de datos..."
 sudo systemctl start mariadb
 sudo systemctl enable mariadb
+sudo systemctl enable --now firewalld
 sudo mysql -e "CREATE DATABASE $DB_NAME;"
 sudo mysql -e "CREATE USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASSWORD';"
 sudo mysql -e "GRANT ALL PRIVILEGES ON $DB_NAME.* TO '$DB_USER'@'localhost';"
 sudo mysql -e "FLUSH PRIVILEGES;"
-
 # Descarga y configuración de WordPress
 echo "Descargando y configurando WordPress..."
 sudo wget https://wordpress.org/$WP_VERSION.tar.gz -P /tmp/
@@ -47,7 +54,6 @@ sudo tar -xvf /tmp/$WP_VERSION.tar.gz -C /var/www/html/
 sudo mv /var/www/html/wordpress /var/www/html/myblog
 sudo chown -R apache:apache /var/www/html/myblog
 sudo chmod -R 755 /var/www/html/myblog
-
 # Configuración de Apache
 echo "Configurando Apache..."
 sudo tee /etc/httpd/conf.d/myblog.conf <<EOF
@@ -63,7 +69,6 @@ sudo tee /etc/httpd/conf.d/myblog.conf <<EOF
 EOF
 sudo systemctl restart httpd
 sudo systemctl enable httpd
-
 # Configuración de WordPress
 echo "Configurando WordPress..."
 sudo tee /var/www/html/myblog/wp-config.php <<EOF
@@ -74,7 +79,7 @@ define('DB_PASSWORD', '$DB_PASSWORD');
 define('DB_HOST', 'localhost');
 define('DB_CHARSET', 'utf8');
 define('DB_COLLATE', '');
-define('AUTH_KEY',         'put your unique phrase here');
+define('AUTH',         'put your unique phrase here');
 define('SECURE_AUTH_KEY',  'put your unique phrase here');
 define('LOGGED_IN_KEY',    'put your unique phrase here');
 define('NONCE_KEY',        'put your unique phrase here');
@@ -88,5 +93,9 @@ if ( !defined('ABSPATH') )
     define('ABSPATH', dirname(__FILE__) . '/');
 require_once(ABSPATH . 'wp-settings.php');
 EOF
+# Configurar firewalld
+
+firewall-cmd --add-service=http --permanent
+firewall-cmd --reload
 
 echo "WordPress instalado y configurado correctamente."
